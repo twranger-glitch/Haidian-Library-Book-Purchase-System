@@ -3,6 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, signInAnonymously, signInWithCustomToken } from "firebase/auth";
 import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, onSnapshot, doc, updateDoc, addDoc, arrayUnion, arrayRemove, setDoc, getDoc, writeBatch, deleteDoc } from "firebase/firestore";
 
+// --- 圖示索引表 (對應 Google Material Symbols) ---
 const ICON_REGISTRY = {
    'alert-triangle': 'warning', 'image-off': 'image_not_supported', 'heart': 'favorite',
    'ticket': 'local_activity', 'party-popper': 'celebration', 'info': 'info',
@@ -19,6 +20,7 @@ const ICON_REGISTRY = {
    'lock': 'lock', 'search': 'search', 'fire': 'local_fire_department', 'map': 'map'
 };
 
+// --- 通用圖示組件 ---
 const Icon = React.memo(({ name, className = "w-5 h-5", fill = "none", strokeWidth = 2 }) => {
   const materialName = ICON_REGISTRY[name] || 'help';
   const isFilled = fill === 'currentColor' || fill !== 'none';
@@ -41,6 +43,7 @@ const Icon = React.memo(({ name, className = "w-5 h-5", fill = "none", strokeWid
   );
 });
 
+// --- Firebase 初始化 ---
 const FALLBACK_CONFIG = {
   apiKey: "AIzaSyA4gSwrBmvv0pThiWdS27zWWY0i--e2xv4",
   authDomain: "book-purchase-system.firebaseapp.com",
@@ -67,9 +70,11 @@ try {
 const auth = getAuth(app);
 const appId = typeof __app_id !== 'undefined' ? __app_id : "school-library-app";
 
+// --- 固定資料集 ---
 const AUTHORS = ['齊藤洋', '張友漁', '艾琳．杭特', '原京子', '原裕', '王文華', '林哲璋', '王淑芬', '陳郁如', '林世仁', '廖炳焜', '廣嶋玲子', '吉靜如', '肥志', '鄭宗弦', '岑澎維', '哲也', '張嘉驊', 'Popcorn Story', '吉竹伸介', '海狗房東', '阿德蝸', 'Troll', '香川元太郎', '林柏廷', '宮西達也', '李光福', '賴馬', '劉旭恭'].sort((a, b) => a.localeCompare(b, 'zh-TW')); 
 const SERIES = ['神奇柑仔店', '達克比', '科學發明王', '科學實驗王', '楓之谷數學神偷', 'X尋寶探險隊', 'X超強對決王', 'X萬獸探險隊', 'X極限挑戰王', '狼人生存遊戲', '科學偵探謎野真實', 'X機器人戰隊', '植物大戰殭屍', '紅豆綠豆碰'].sort((a, b) => a.localeCompare(b, 'zh-TW'));
 
+// --- 工具函數 ---
 const Utils = {
   getTodayStr: () => {
     const d = new Date();
@@ -154,11 +159,11 @@ const getVipRanking = (vipRequests) => {
    };
 };
 
+// --- 書籍卡片組件 ---
 const BookCard = React.memo(({ book, user, isAdmin, handleVote, setFastPassModalBook, handleAdminRemoveVip, handleWithdrawPass, handleAdminDelete }) => {
   const votesCount = book.votes ? book.votes.length : 0;
   const hasVoted = book.votes && user && book.votes.includes(user.uid);
   const vipRequests = book.vipRequests || [];
-  const isViped = vipRequests.length > 0;
   const ranking = useMemo(() => getVipRanking(vipRequests), [vipRequests]);
   const isAchieved = ranking.total >= 15;
   
@@ -252,7 +257,7 @@ const BookCard = React.memo(({ book, user, isAdmin, handleVote, setFastPassModal
                    <Icon name="award" className="w-4 h-4" /> 達標保送
                  </div>
               ) : (
-               <button onClick={() => setFastPassModalBook({...book, collectionName: 'books'})} title="投入快通券，參與首讀爭奪戰！" className="text-xs sm:text-sm font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-xl hover:bg-amber-100 hover:shadow-md transition-all flex items-center gap-1.5 shadow-sm focus:ring-2 focus:ring-amber-50 outline-none">
+               <button onClick={() => setFastPassModalBook({...book, collectionName: 'books'})} title="投入快通券，參與首讀爭奪戰！" className="text-xs sm:text-sm font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-xl hover:bg-amber-100 hover:shadow-md transition-all flex items-center gap-1.5 shadow-sm focus:ring-2 focus:ring-amber-500 outline-none">
                  <Icon name="ticket" className="w-4 h-4" /> 搶首讀特權
                </button>
               )
@@ -269,6 +274,7 @@ const BookCard = React.memo(({ book, user, isAdmin, handleVote, setFastPassModal
              onClick={() => setFastPassModalBook({...book, collectionName: 'books'})}
              className={`text-sm font-black px-3 py-2.5 rounded-lg shadow-sm flex items-center justify-center gap-1.5 transition-all outline-none ${isAchieved ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 active:scale-95 focus:ring-2 focus:ring-amber-500'}`}
              disabled={isAchieved}
+             title={isAchieved ? "此書已達標鎖定" : "投入快通券，參與首讀爭奪戰！"}
            >
              <Icon name="ticket" className="w-4 h-4" /> 投入快通券爭奪首讀
            </button>
@@ -276,6 +282,7 @@ const BookCard = React.memo(({ book, user, isAdmin, handleVote, setFastPassModal
              <button 
                 onClick={() => handleWithdrawPass(book, 'books')}
                 className="text-xs font-bold text-rose-500 hover:text-rose-700 flex items-center justify-center gap-1 outline-none focus:ring-2 focus:ring-rose-500 rounded py-1 mt-1"
+                title="撤回您投入的快通券"
              >
                 <Icon name="history" className="w-3.5 h-3.5" /> 撤回 1 張 (您已投 {myVipCount} 張)
              </button>
@@ -292,6 +299,7 @@ const BookCard = React.memo(({ book, user, isAdmin, handleVote, setFastPassModal
   );
 });
 
+// --- 許願單卡片組件 ---
 const WishlistCard = React.memo(({ wish, user, isAdmin, handleVote, setFastPassModalBook, handleAdminRemoveVip, handleWithdrawPass, handleAdminDelete }) => {
   const votesCount = wish.votes ? wish.votes.length : 0;
   const hasVoted = wish.votes && user && wish.votes.includes(user.uid);
@@ -387,6 +395,7 @@ const WishlistCard = React.memo(({ wish, user, isAdmin, handleVote, setFastPassM
           <button 
             onClick={() => setFastPassModalBook({...wish, collectionName: 'wishlists'})} 
             disabled={isAchieved} 
+            title={isAchieved ? "此書已達標鎖定" : "投入快通券，參與首讀爭奪戰！"}
             className={`text-sm font-black px-4 py-2.5 rounded-lg flex items-center justify-center gap-1.5 outline-none transition-all shadow-sm ${isAchieved ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 active:scale-95 focus:ring-2 focus:ring-amber-500'}`}
           >
             <Icon name="ticket" className="w-4 h-4" /> 投快通助攻
@@ -395,6 +404,7 @@ const WishlistCard = React.memo(({ wish, user, isAdmin, handleVote, setFastPassM
             <button 
               onClick={() => handleWithdrawPass(wish, 'wishlists')} 
               className="text-xs font-bold text-rose-500 hover:text-rose-700 flex items-center justify-center gap-1 outline-none focus:ring-2 focus:ring-rose-500 rounded py-1 mt-1"
+              title="撤回您投入的快通券"
             >
               <Icon name="history" className="w-3 h-3" /> 撤回 1 張 (您已投 {myVipCount} 張)
             </button>
@@ -411,6 +421,7 @@ const WishlistCard = React.memo(({ wish, user, isAdmin, handleVote, setFastPassM
   );
 });
 
+// --- 錯誤處理界殼 ---
 class ErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { hasError: false, error: null }; }
   static getDerivedStateFromError(error) { return { hasError: true, error }; }
@@ -428,6 +439,7 @@ class ErrorBoundary extends Component {
   }
 }
 
+// --- 主程式入口 ---
 function App() {
   const [user, setUser] = useState(null);
   const ADMIN_UIDS = ['NisQ7ZkSc8h59efkGRGEif0AOyz2'];
@@ -437,11 +449,6 @@ function App() {
   const [books, setBooks] = useState(() => Utils.getCachedArray('haidian_books') || []);
   const [wishlists, setWishlists] = useState(() => Utils.getCachedArray('haidian_wishlists') || []);
   
-  const [booksError, setBooksError] = useState(null);
-  const [booksDebugInfo, setBooksDebugInfo] = useState(null);
-  const [wishlistsError, setWishlistsError] = useState(null);
-  const [wishlistsDebugInfo, setWishlistsDebugInfo] = useState(null);
-
   const [inventoryDict, setInventoryDict] = useState({}); 
   const [inventoryLastUpdated, setInventoryLastUpdated] = useState(null);
   const [dailyVotesCount, setDailyVotesCount] = useState(0); 
@@ -465,15 +472,8 @@ function App() {
   const [slowLoadWarning, setSlowLoadWarning] = useState(false);
   
   const loaderRef = useRef(null);
-  
-  const [booksReady, setBooksReady] = useState(() => {
-    const cached = Utils.getCachedArray('haidian_books');
-    return cached && cached.length > 0;
-  });
-  const [wishlistsReady, setWishlistsReady] = useState(() => {
-    const cached = Utils.getCachedArray('haidian_wishlists');
-    return cached && cached.length > 0;
-  }); 
+  const [booksReady, setBooksReady] = useState(false);
+  const [wishlistsReady, setWishlistsReady] = useState(false); 
   
   const showMessage = useCallback((message, title = "系統提示") => { setModalContent({ title, message }); }, []);
 
@@ -494,6 +494,7 @@ function App() {
     return () => clearTimeout(timer);
   }, [booksReady, wishlistsReady]);
 
+  // Firebase 身份驗證監聽
   useEffect(() => {
     let isPreviewMode = false;
     const initAuth = async () => {
@@ -523,51 +524,56 @@ function App() {
     return () => unsubscribe();
   }, []);
 
+  // 動靜分離同步核心 (Restored & Improved)
   useEffect(() => {
-    const booksPath = `artifacts/${appId}/public/data/books`;
-    const unsubscribeBooks = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'books'), (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      data.sort((a, b) => (b.votes?.length || 0) - (a.votes?.length || 0));
+    const fetchCacheAndSubscribe = async () => {
+      try {
+        // 1. 優先讀取超級快取
+        const cacheRef = doc(db, 'artifacts', appId, 'public', 'data', 'system', 'cache_books');
+        const cacheSnap = await getDoc(cacheRef);
+        if (cacheSnap.exists()) {
+          setBooks(cacheSnap.data().list || []);
+        }
+      } catch (e) { console.error("Cache load error:", e); }
       
-      setBooks(data); 
       setBooksReady(true);
-      setBooksError(null);
-      setBooksDebugInfo({ path: booksPath, size: snapshot.size, empty: snapshot.empty, fromCache: snapshot.metadata.fromCache });
-      
-      if (data.length > 0) { try { localStorage.setItem('haidian_books', JSON.stringify(data)); } catch(e){} }
-    }, err => { 
-      setBooksReady(true); 
-      setBooksError(`${err.code || 'unknown'}：${err.message || String(err)}`);
-      setBooksDebugInfo({ path: booksPath, errorCode: err.code || 'unknown' });
-    });
-    
-    const wishlistsPath = `artifacts/${appId}/public/data/wishlists`;
-    const unsubscribeWish = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'wishlists'), (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      data.sort((a,b) => Utils.getTimestamp(b.createdAt) - Utils.getTimestamp(a.createdAt));
-      
-      setWishlists(data);
-      setWishlistsReady(true);
-      setWishlistsError(null);
-      setWishlistsDebugInfo({ path: wishlistsPath, size: snapshot.size, empty: snapshot.empty, fromCache: snapshot.metadata.fromCache });
 
-      if (data.length > 0) { try { localStorage.setItem('haidian_wishlists', JSON.stringify(data)); } catch(e){} }
-    }, err => { 
-      setWishlistsReady(true); 
-      setWishlistsError(`${err.code || 'unknown'}：${err.message || String(err)}`);
-      setWishlistsDebugInfo({ path: wishlistsPath, errorCode: err.code || 'unknown' });
-    });
+      // 2. 開啟即時同步監聽 (合併快取與即時資料)
+      const unsubscribeBooks = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'books'), (snapshot) => {
+        const liveData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setBooks(prevBooks => {
+          const newBooks = prevBooks.map(staticBook => {
+            const liveMatch = liveData.find(l => l.isbn === staticBook.isbn || (staticBook.title && l.title === staticBook.title));
+            return liveMatch ? { ...staticBook, ...liveMatch } : staticBook;
+          });
+          const existingIds = new Set(newBooks.map(b => b.id || b.isbn));
+          const unsyncedNewOnes = liveData.filter(l => !existingIds.has(l.id || l.isbn));
+          const finalResult = [...newBooks, ...unsyncedNewOnes];
+          finalResult.sort((a, b) => (b.votes?.length || 0) - (a.votes?.length || 0));
+          return finalResult;
+        });
+      });
 
-    const unsubscribeInventory = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'system', 'inventory'), (docSnap) => {
-      if (docSnap.exists() && docSnap.data().dict) {
-        setInventoryDict(docSnap.data().dict);
-        if (docSnap.data().lastUpdated) setInventoryLastUpdated(docSnap.data().lastUpdated);
-      }
-    }, err => console.error("Inventory Error:", err));
-    
-    return () => { unsubscribeBooks(); unsubscribeWish(); unsubscribeInventory(); };
+      const unsubscribeWish = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'wishlists'), (snapshot) => {
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        data.sort((a,b) => Utils.getTimestamp(b.createdAt) - Utils.getTimestamp(a.createdAt));
+        setWishlists(data);
+        setWishlistsReady(true);
+      });
+
+      const unsubscribeInventory = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'system', 'inventory'), (docSnap) => {
+        if (docSnap.exists() && docSnap.data().dict) {
+          setInventoryDict(docSnap.data().dict);
+          if (docSnap.data().lastUpdated) setInventoryLastUpdated(docSnap.data().lastUpdated);
+        }
+      });
+      
+      return () => { unsubscribeBooks(); unsubscribeWish(); unsubscribeInventory(); };
+    };
+    fetchCacheAndSubscribe();
   }, []); 
 
+  // 監聽每日額度
   useEffect(() => {
     if (!user || user.isAnonymous) {
       setDailyVotesCount(0);
@@ -585,8 +591,7 @@ function App() {
          setDailyVotesCount(0);
          setLastVoteDayKey(0);
       }
-    }, err => console.error("Stats Error:", err));
-    
+    });
     return () => unsubStats();
   }, [user]);
 
@@ -598,9 +603,7 @@ function App() {
     }
   };
   
-  const handleLogout = async () => { 
-    try { await signOut(auth); } catch (error) {} 
-  };
+  const handleLogout = async () => { try { await signOut(auth); } catch (error) {} };
 
   const handleWithdrawPass = async (item, collectionName) => {
     if (!user || user.isAnonymous) return;
@@ -659,7 +662,6 @@ function App() {
         await batch.commit(); 
       }
     } catch(e) {
-      console.error("投票失敗:", e);
       if (!hasVoted) setDailyVotesCount(prev => Math.max(0, prev - 1)); 
       showMessage("愛心送出失敗，請稍後再試。\n" + e.message, "操作失敗");
     } finally {
@@ -728,6 +730,7 @@ function App() {
     } catch(e) { showMessage("刪除失敗：" + e.message, "系統錯誤"); }
   };
 
+  // 許願池邏輯 (🔥 找回完整的防呆合併與每日愛心扣除邏輯)
   const handleIsbnChange = (e) => {
     const isbn = e.target.value.replace(/[^0-9Xx]/g, ''); setWishFormData({ ...wishFormData, isbn });
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
@@ -826,34 +829,24 @@ function App() {
          return showMessage(`這本書其實已經在【${collNameZhtw}】區囉！\n系統已自動為您防呆，將您的 ${messageExtra}合併灌注到那本書上！\n\n快去列表看看它現在的排名吧！`, "發現重複書籍，已自動合併 🌟");
       }
 
+      // 若為全新許願單
+      const newWishDoc = doc(collection(db, 'artifacts', appId, 'public', 'data', 'wishlists')); 
+      batch.set(newWishDoc, {
+        title: wishFormData.title, isbn: wishFormData.isbn, reason: wishFormData.reason, duplicateReason: wishFormData.duplicateReason, 
+        vipRequests: initialVipRequests, vipCode: "", 
+        status: 'pending', userId: user.uid, userName: maskedUserName, createdAt: nowMs, votes: [user.uid]
+      });
       if (codeToUse) {
-         const newWishDoc = doc(collection(db, 'artifacts', appId, 'public', 'data', 'wishlists')); 
-         batch.set(newWishDoc, {
-            title: wishFormData.title, isbn: wishFormData.isbn, reason: wishFormData.reason, duplicateReason: wishFormData.duplicateReason, 
-            vipRequests: initialVipRequests, vipCode: "", 
-            status: 'pending', userId: user.uid, userName: maskedUserName, createdAt: nowMs, votes: [user.uid]
-         });
-         batch.update(vipDocRef, { status: '已使用', usedBy: user.uid, usedAt: nowMs, usedForColl: 'wishlists', usedForId: newWishDoc.id, usedName: maskedUserName });
-         const newCount = previousCount + 1;
-         setDailyVotesCount(newCount); 
-         setLastVoteDayKey(currentDayKey);
-         const statsRef = doc(db, 'artifacts', appId, 'users', user.uid, 'voteStats', 'daily');
-         batch.set(statsRef, { dayKey: currentDayKey, count: newCount });
-         await batch.commit();
-      } else {
-         const newWishDoc = doc(collection(db, 'artifacts', appId, 'public', 'data', 'wishlists')); 
-         batch.set(newWishDoc, {
-            title: wishFormData.title, isbn: wishFormData.isbn, reason: wishFormData.reason, duplicateReason: wishFormData.duplicateReason, 
-            vipRequests: initialVipRequests, vipCode: "",
-            status: 'pending', userId: user.uid, userName: maskedUserName, createdAt: nowMs, votes: [user.uid]
-         });
-         const newCount = previousCount + 1;
-         setDailyVotesCount(newCount); 
-         setLastVoteDayKey(currentDayKey);
-         const statsRef = doc(db, 'artifacts', appId, 'users', user.uid, 'voteStats', 'daily');
-         batch.set(statsRef, { dayKey: currentDayKey, count: newCount });
-         await batch.commit();
+        batch.update(vipDocRef, { status: '已使用', usedBy: user.uid, usedAt: nowMs, usedForColl: 'wishlists', usedForId: newWishDoc.id, usedName: maskedUserName });
       }
+      
+      const newCount = previousCount + 1;
+      setDailyVotesCount(newCount); 
+      setLastVoteDayKey(currentDayKey);
+      const statsRef = doc(db, 'artifacts', appId, 'users', user.uid, 'voteStats', 'daily');
+      batch.set(statsRef, { dayKey: currentDayKey, count: newCount });
+      
+      await batch.commit();
 
       setWishFormData({ title: '', isbn: '', reason: '', duplicateReason: '', vipCode: '' }); 
       setInventoryCheckResult(null);
@@ -864,6 +857,7 @@ function App() {
     }
   };
 
+  // 篩選與搜尋邏輯 (Restored Full Logic)
   const filteredBooks = useMemo(() => {
     return books.filter(book => {
       if (filterType !== 'all') {
@@ -885,13 +879,13 @@ function App() {
   const regularBooks = filteredBooks.filter(b => (b.vipRequests?.length || 0) < 15);
   
   const filteredWishlists = useMemo(() => {
-     if (!searchQuery.trim()) return wishlists;
-     const q = searchQuery.toLowerCase().trim();
-     return wishlists.filter(wish => {
-        const t = String(wish.title || '').toLowerCase();
-        const u = String(wish.userName || '').toLowerCase();
-        return t.includes(q) || u.includes(q);
-     });
+    if (!searchQuery.trim()) return wishlists;
+    const q = searchQuery.toLowerCase().trim();
+    return wishlists.filter(wish => {
+      const t = String(wish.title || '').toLowerCase();
+      const u = String(wish.userName || '').toLowerCase();
+      return t.includes(q) || u.includes(q);
+    });
   }, [wishlists, searchQuery]);
 
   const achievedWishlists = filteredWishlists.filter(w => {
@@ -903,19 +897,8 @@ function App() {
      return count < 15;
   });
 
-  const latestUpdateStr = useMemo(() => {
-    if (!books || books.length === 0) return '';
-    const validDates = books.map(b => Utils.getTimestamp(b.createdAt)).filter(t => t > 0);
-    if (validDates.length === 0) return '';
-    const maxTime = Math.max(...validDates);
-    const d = new Date(maxTime);
-    return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
-  }, [books]);
-
-  useEffect(() => {
-    if (activeTab === 'new-books') setVisibleBookCount(12);
-  }, [activeTab, filterType, filterKeyword, searchQuery]);
-
+  // 分頁加載
+  useEffect(() => { if (activeTab === 'new-books') setVisibleBookCount(12); }, [activeTab, filterType, filterKeyword, searchQuery]);
   useEffect(() => {
     if (activeTab !== 'new-books' || regularBooks.length === 0) return;
     const observer = new IntersectionObserver((entries) => {
@@ -930,13 +913,21 @@ function App() {
 
   const displayedRegularBooks = regularBooks.slice(0, visibleBookCount);
 
+  const latestUpdateStr = useMemo(() => {
+    if (!books || books.length === 0) return '';
+    const validDates = books.map(b => Utils.getTimestamp(b.createdAt)).filter(t => t > 0);
+    if (validDates.length === 0) return '';
+    const d = new Date(Math.max(...validDates));
+    return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+  }, [books]);
+
   const invDateStr = useMemo(() => {
     if (!inventoryLastUpdated) return '';
     const d = new Date(inventoryLastUpdated);
     return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
   }, [inventoryLastUpdated]);
 
-  if (!booksReady || !wishlistsReady) return (
+  if (!booksReady) return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 px-4 text-center">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-50 mb-4 shadow-sm">
            <Icon name="loader-2" className="w-8 h-8 animate-spin text-indigo-600" />
@@ -954,6 +945,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 pb-20">
       
+      {/* 關於海佃地圖彈窗 */}
       {showAbout && (
         <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
           <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
@@ -999,6 +991,7 @@ function App() {
         </div>
       )}
 
+      {/* 訊息彈窗 */}
       {modalContent && (
          <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
            <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center animate-in zoom-in-95">
@@ -1010,6 +1003,7 @@ function App() {
          </div>
       )}
 
+      {/* 快通券輸入彈窗 */}
       {fastPassModalBook && (
         <div className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
            <div className="bg-white rounded-3xl p-8 w-full max-w-md animate-in zoom-in-95 shadow-2xl border border-slate-200">
@@ -1032,6 +1026,7 @@ function App() {
         </div>
       )}
       
+      {/* 導覽列 */}
       <header className="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-40 border-b border-slate-200/50">
         <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8">
            <div className="flex justify-between items-center h-16 sm:h-20 gap-2">
@@ -1075,6 +1070,7 @@ function App() {
         </div>
       </header>
 
+      {/* 玩法說明區 */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-3xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
             <div className="absolute right-0 top-0 opacity-10 pointer-events-none" aria-hidden="true"><Icon name="ticket" className="w-64 h-64 -mt-10 -mr-10" /></div>
@@ -1166,32 +1162,18 @@ function App() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 xl:gap-8">
-              {booksError ? (
-                 <div className="col-span-full p-6 sm:p-8 bg-rose-50 border border-rose-200 rounded-3xl text-rose-700 font-bold shadow-sm flex flex-col items-center justify-center text-center">
-                   <Icon name="alert-triangle" className="w-16 h-16 mb-4 text-rose-400" />
-                   <p className="text-xl mb-2">書單資料讀取失敗</p>
-                   <p className="text-sm whitespace-pre-wrap max-w-2xl">{booksError}</p>
-                   <p className="text-xs mt-4 text-rose-500 bg-white px-3 py-1.5 rounded-lg border border-rose-100 shadow-sm">
-                     Firestore 路徑：{booksDebugInfo?.path}
-                   </p>
-                 </div>
-              ) : displayedRegularBooks.length === 0 ? (
+              {displayedRegularBooks.length === 0 ? (
                  <div className="col-span-full flex flex-col items-center justify-center py-24 text-slate-400 bg-white rounded-3xl border border-dashed border-slate-200 shadow-sm" role="status">
                    <Icon name="search-x" className="w-16 h-16 mb-4 text-slate-300" />
                    <p className="font-bold text-lg text-slate-500">
                      {searchQuery ? "找不到符合搜尋字詞的書本 😢" : "目前沒有待集氣的書單"}
                    </p>
-                   {booksDebugInfo && (
-                     <p className="text-xs mt-3 text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-                       Debug：{booksDebugInfo.path}，size={booksDebugInfo.size}
-                     </p>
-                   )}
                  </div>
               ) : (
-                displayedRegularBooks.map(b => <BookCard key={b.id} book={b} user={user} isAdmin={isAdmin} handleVote={handleVote} setFastPassModalBook={handleOpenFastPass} handleAdminRemoveVip={handleAdminRemoveVip} handleWithdrawPass={handleWithdrawPass} handleAdminDelete={handleAdminDelete} />)
+                displayedRegularBooks.map(b => <BookCard key={b.id || b.isbn} book={b} user={user} isAdmin={isAdmin} handleVote={handleVote} setFastPassModalBook={handleOpenFastPass} handleAdminRemoveVip={handleAdminRemoveVip} handleWithdrawPass={handleWithdrawPass} handleAdminDelete={handleAdminDelete} />)
               )}
               
-              {!booksError && visibleBookCount < regularBooks.length && (
+              {visibleBookCount < regularBooks.length && (
                  <div ref={loaderRef} className="col-span-full py-8 flex items-center justify-center text-indigo-400">
                    <Icon name="loader-2" className="w-8 h-8 animate-spin" />
                  </div>
@@ -1254,13 +1236,7 @@ function App() {
              <div className="lg:col-span-7 xl:col-span-8">
                <h2 className="text-xl font-extrabold text-slate-800 mb-6 flex items-center gap-3 ml-1"><div className="bg-blue-100 p-2 rounded-xl text-blue-600"><Icon name="book-heart" className="w-5 h-5" /></div>大家的許願待集氣清單</h2>
                <div className="space-y-5">
-                 {wishlistsError ? (
-                   <div className="flex flex-col items-center justify-center p-8 bg-rose-50 rounded-3xl border border-rose-200 shadow-sm text-center">
-                     <Icon name="alert-triangle" className="w-16 h-16 mb-4 text-rose-400" />
-                     <p className="font-bold text-xl text-rose-700 mb-2">許願單資料讀取失敗</p>
-                     <p className="text-sm text-rose-600 whitespace-pre-wrap">{wishlistsError}</p>
-                   </div>
-                 ) : regularWishlists.length === 0 ? (
+                 {regularWishlists.length === 0 ? (
                    <div className="flex flex-col items-center justify-center py-24 text-slate-400 bg-white rounded-3xl border border-dashed border-slate-200 shadow-sm" role="status">
                      <Icon name="inbox" className="w-16 h-16 mb-4 text-slate-300" />
                      <p className="font-bold text-lg text-slate-500">
@@ -1290,7 +1266,7 @@ function App() {
                 <div>
                   <h3 className="text-xl font-extrabold text-slate-800 mb-6 flex items-center gap-2 ml-1"><Icon name="book-open" className="w-6 h-6 text-indigo-500" /> 🌟 新書推薦達標</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 xl:gap-8">
-                    {achievedBooks.map(b => <BookCard key={b.id} book={b} user={user} isAdmin={isAdmin} handleVote={handleVote} setFastPassModalBook={handleOpenFastPass} handleAdminRemoveVip={handleAdminRemoveVip} handleWithdrawPass={handleWithdrawPass} handleAdminDelete={handleAdminDelete} />)}
+                    {achievedBooks.map(b => <BookCard key={b.id || b.isbn} book={b} user={user} isAdmin={isAdmin} handleVote={handleVote} setFastPassModalBook={handleOpenFastPass} handleAdminRemoveVip={handleAdminRemoveVip} handleWithdrawPass={handleWithdrawPass} handleAdminDelete={handleAdminDelete} />)}
                   </div>
                 </div>
               )}
@@ -1302,7 +1278,7 @@ function App() {
                   </div>
                 </div>
               )}
-              {achievedBooks.length === 0 && achievedWishlists.length === 0 && !booksError && !wishlistsError && (
+              {achievedBooks.length === 0 && achievedWishlists.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-24 text-slate-400 bg-white rounded-3xl border border-dashed border-slate-200 shadow-sm" role="status">
                    <Icon name="search-x" className="w-16 h-16 mb-4 text-slate-300 opacity-70" />
                    <p className="font-bold text-lg text-slate-500">
