@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Component, useRef, useMemo, useCallback } from 'react';
 import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, signInAnonymously, signInWithCustomToken } from "firebase/auth";
-import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, onSnapshot, doc, updateDoc, addDoc, arrayUnion, arrayRemove, setDoc, getDoc, writeBatch, deleteDoc } from "firebase/firestore";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, onSnapshot, doc, updateDoc, arrayUnion, arrayRemove, setDoc, getDoc, writeBatch, deleteDoc } from "firebase/firestore";
 
 // --- 圖示索引表 (對應 Google Material Symbols) ---
 const ICON_REGISTRY = {
@@ -524,11 +524,10 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  // 動靜分離同步核心 (Restored & Improved)
+  // 動靜分離同步核心
   useEffect(() => {
     const fetchCacheAndSubscribe = async () => {
       try {
-        // 1. 優先讀取超級快取
         const cacheRef = doc(db, 'artifacts', appId, 'public', 'data', 'system', 'cache_books');
         const cacheSnap = await getDoc(cacheRef);
         if (cacheSnap.exists()) {
@@ -538,7 +537,6 @@ function App() {
       
       setBooksReady(true);
 
-      // 2. 開啟即時同步監聽 (合併快取與即時資料)
       const unsubscribeBooks = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'books'), (snapshot) => {
         const liveData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setBooks(prevBooks => {
@@ -662,6 +660,7 @@ function App() {
         await batch.commit(); 
       }
     } catch(e) {
+      console.error("投票失敗:", e);
       if (!hasVoted) setDailyVotesCount(prev => Math.max(0, prev - 1)); 
       showMessage("愛心送出失敗，請稍後再試。\n" + e.message, "操作失敗");
     } finally {
@@ -730,7 +729,7 @@ function App() {
     } catch(e) { showMessage("刪除失敗：" + e.message, "系統錯誤"); }
   };
 
-  // 許願池邏輯 (🔥 找回完整的防呆合併與每日愛心扣除邏輯)
+  // 許願池邏輯 
   const handleIsbnChange = (e) => {
     const isbn = e.target.value.replace(/[^0-9Xx]/g, ''); setWishFormData({ ...wishFormData, isbn });
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
@@ -829,7 +828,6 @@ function App() {
          return showMessage(`這本書其實已經在【${collNameZhtw}】區囉！\n系統已自動為您防呆，將您的 ${messageExtra}合併灌注到那本書上！\n\n快去列表看看它現在的排名吧！`, "發現重複書籍，已自動合併 🌟");
       }
 
-      // 若為全新許願單
       const newWishDoc = doc(collection(db, 'artifacts', appId, 'public', 'data', 'wishlists')); 
       batch.set(newWishDoc, {
         title: wishFormData.title, isbn: wishFormData.isbn, reason: wishFormData.reason, duplicateReason: wishFormData.duplicateReason, 
@@ -857,7 +855,7 @@ function App() {
     }
   };
 
-  // 篩選與搜尋邏輯 (Restored Full Logic)
+  // 篩選與搜尋邏輯 
   const filteredBooks = useMemo(() => {
     return books.filter(book => {
       if (filterType !== 'all') {
@@ -947,46 +945,66 @@ function App() {
       
       {/* 關於海佃地圖彈窗 */}
       {showAbout && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
-             <div className="bg-gradient-to-br from-indigo-900 to-slate-800 p-10 text-center relative overflow-hidden">
-               <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
-               <button onClick={() => setShowAbout(false)} className="absolute top-4 right-4 z-20 text-white/50 hover:text-white bg-black/20 hover:bg-black/40 rounded-full p-2 transition-all backdrop-blur-md outline-none focus:ring-2 focus:ring-white">
-                 <Icon name="x" className="w-5 h-5" />
-               </button>
-               <div className="relative z-10 flex flex-col items-center">
-                  <div className="w-16 h-16 bg-gradient-to-br from-indigo-400 to-blue-500 rounded-2xl flex items-center justify-center border border-white/20 mb-5 shadow-lg shadow-indigo-500/30 transform rotate-3 hover:rotate-0 transition-transform">
-                    <Icon name="map" className="w-8 h-8 text-white -rotate-3" />
-                  </div>
-                  <h3 className="text-2xl sm:text-3xl font-black text-white tracking-widest mb-1">海佃地圖</h3>
-                  <p className="text-indigo-300 font-bold tracking-[0.2em] text-xs uppercase">Haidian Hidden Library</p>
-               </div>
-             </div>
-             <div className="p-8 sm:p-10 text-slate-700 space-y-6 text-sm sm:text-base leading-relaxed font-medium bg-white">
-               <div className="text-center">
-                 <p className="font-black text-xl text-slate-800 mb-3">海佃<span className="text-indigo-600 inline-block scale-125 mx-1">地</span>下<span className="text-indigo-600 inline-block scale-125 mx-1">圖</span>書室</p>
-                 <div className="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-50 px-3.5 py-1.5 rounded-full border border-amber-200">
-                   <Icon name="lightbulb" className="w-4 h-4" /> 簡稱「海佃地圖」
+        <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[90dvh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 relative">
+            
+            {/* 懸浮關閉按鈕 (確保手機上絕對看得到) */}
+            <button onClick={() => setShowAbout(false)} className="absolute top-3 right-3 sm:top-4 sm:right-4 z-50 bg-black/30 hover:bg-black/50 text-white backdrop-blur-md rounded-full p-2 transition-all outline-none focus:ring-2 focus:ring-white/50">
+              <Icon name="x" className="w-5 h-5" />
+            </button>
+            
+            {/* 可滾動的內容區塊 */}
+            <div className="flex-1 overflow-y-auto hide-scrollbar">
+               {/* 視覺 Banner (重新設計比例與光影) */}
+               <div className="bg-gradient-to-br from-indigo-900 via-blue-900 to-slate-900 p-8 sm:p-12 text-center relative overflow-hidden">
+                 <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay"></div>
+                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-indigo-500/30 blur-3xl rounded-full pointer-events-none"></div>
+                 
+                 <div className="relative z-10 flex flex-col items-center mt-2">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-indigo-400 to-blue-500 rounded-[1.5rem] flex items-center justify-center border border-white/20 mb-6 shadow-2xl shadow-indigo-500/40 transform -rotate-3 hover:rotate-0 transition-transform duration-300">
+                      <Icon name="map" className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
+                    </div>
+                    <h3 className="text-3xl sm:text-4xl font-black text-white tracking-[0.15em] mb-3 drop-shadow-md">海佃地圖</h3>
+                    <p className="text-indigo-200 font-bold tracking-[0.3em] text-[10px] sm:text-xs uppercase opacity-90">Haidian Hidden Library</p>
                  </div>
                </div>
-               <p className="text-center font-bold text-slate-400 italic mt-2">" Hidden below, growing beyond. "</p>
-               <div className="space-y-4 text-justify px-2 text-slate-600">
-                 <p>不只是空間，而是校園閱讀的根系。在看不見的地方，收藏問題、灌溉想像，讓閱讀悄悄生長。</p>
-                 <p>孩子從這裡出發，帶走的不只是一本書，而是一張通往世界的<strong className="text-indigo-600 font-black px-1 text-lg">地圖</strong>。</p>
+               
+               {/* 文字內容區 */}
+               <div className="p-6 sm:p-10 text-slate-700 bg-white">
+                 {/* 標題與引言 */}
+                 <div className="text-center mb-8">
+                   <div className="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-50 px-3.5 py-1.5 rounded-full border border-amber-200 mb-4 shadow-sm">
+                     <Icon name="lightbulb" className="w-4 h-4" /> 探索看不見的閱讀根系
+                   </div>
+                   <p className="text-xl sm:text-2xl font-black text-slate-800 leading-snug">
+                     海佃<span className="text-indigo-600 px-1">地</span>下<span className="text-indigo-600 px-1">圖</span>書室
+                   </p>
+                   <p className="text-[13px] sm:text-sm font-bold text-slate-400 italic mt-3">" Hidden below, growing beyond. "</p>
+                 </div>
+  
+                 {/* 內文 (使用 text-balance 解決孤字換行問題) */}
+                 <div className="space-y-6 text-[15px] sm:text-base leading-relaxed font-medium px-1 sm:px-4">
+                   <p className="text-justify text-balance">不只是空間，而是校園閱讀的根系。在看不見的地方，收藏問題、灌溉想像，讓閱讀悄悄生長。</p>
+                   <p className="text-justify text-balance">孩子從這裡出發，帶走的不只是一本書，而是一張通往世界的<strong className="text-indigo-600 font-black px-1.5 text-lg">地圖</strong>。</p>
+                   
+                   <div className="flex items-center justify-center gap-4 py-2 opacity-50">
+                     <div className="h-px bg-slate-300 w-12"></div>
+                     <Icon name="book-heart" className="w-5 h-5 text-slate-400" />
+                     <div className="h-px bg-slate-300 w-12"></div>
+                   </div>
+                   
+                   <p className="text-justify text-balance">如今，我們將地圖的邊界延伸，打造了這座<strong className="text-amber-600 font-black px-1.5 text-lg">新書許願池</strong>。</p>
+                   <p className="text-justify text-balance">在這裡，閱讀不再只是單向的給予，而是雙向的參與。孩子們可以為喜歡的書集氣、用實體快通券爭取首讀特權，甚至主動許願，決定圖書館未來的風景！</p>
+                 </div>
                </div>
-               <div className="flex items-center gap-4 py-2">
-                 <div className="h-px bg-slate-200 flex-1"></div>
-                 <Icon name="book-heart" className="w-5 h-5 text-slate-300" />
-                 <div className="h-px bg-slate-200 flex-1"></div>
-               </div>
-               <div className="space-y-4 text-justify px-2 text-slate-600">
-                 <p>如今，我們將地圖的邊界延伸，打造了這座<strong className="text-amber-600 font-black px-1 text-lg">新書許願池</strong>。</p>
-                 <p>在這裡，閱讀不再只是單向的給予，而是雙向的參與。孩子們可以為喜歡的書集氣、用實體快通券爭取首讀特權，甚至主動許願，決定圖書館未來的風景！</p>
-               </div>
-             </div>
-             <div className="p-4 sm:p-6 bg-slate-50 border-t border-slate-100">
-               <button onClick={() => setShowAbout(false)} className="w-full bg-slate-800 text-white font-bold py-3.5 rounded-xl hover:bg-slate-700 transition-colors outline-none focus:ring-2 focus:ring-slate-800 focus:ring-offset-2 flex justify-center items-center gap-2"><Icon name="check-circle-2" className="w-5 h-5"/> 開始探索</button>
-             </div>
+            </div>
+            
+            {/* 底部固定按鈕區 (確保不會跟著滾動) */}
+            <div className="p-4 sm:p-6 bg-slate-50 border-t border-slate-100 shrink-0">
+              <button onClick={() => setShowAbout(false)} className="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-all outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 flex justify-center items-center gap-2 shadow-lg shadow-slate-900/20 active:scale-[0.98]">
+                <Icon name="check-circle-2" className="w-5 h-5"/> 開始探索
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1162,7 +1180,13 @@ function App() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 xl:gap-8">
-              {displayedRegularBooks.length === 0 ? (
+              {booksError ? (
+                 <div className="col-span-full p-6 sm:p-8 bg-rose-50 border border-rose-200 rounded-3xl text-rose-700 font-bold shadow-sm flex flex-col items-center justify-center text-center">
+                   <Icon name="alert-triangle" className="w-16 h-16 mb-4 text-rose-400" />
+                   <p className="text-xl mb-2">書單資料讀取失敗</p>
+                   <p className="text-sm whitespace-pre-wrap max-w-2xl">{booksError}</p>
+                 </div>
+              ) : displayedRegularBooks.length === 0 ? (
                  <div className="col-span-full flex flex-col items-center justify-center py-24 text-slate-400 bg-white rounded-3xl border border-dashed border-slate-200 shadow-sm" role="status">
                    <Icon name="search-x" className="w-16 h-16 mb-4 text-slate-300" />
                    <p className="font-bold text-lg text-slate-500">
@@ -1173,7 +1197,7 @@ function App() {
                 displayedRegularBooks.map(b => <BookCard key={b.id || b.isbn} book={b} user={user} isAdmin={isAdmin} handleVote={handleVote} setFastPassModalBook={handleOpenFastPass} handleAdminRemoveVip={handleAdminRemoveVip} handleWithdrawPass={handleWithdrawPass} handleAdminDelete={handleAdminDelete} />)
               )}
               
-              {visibleBookCount < regularBooks.length && (
+              {!booksError && visibleBookCount < regularBooks.length && (
                  <div ref={loaderRef} className="col-span-full py-8 flex items-center justify-center text-indigo-400">
                    <Icon name="loader-2" className="w-8 h-8 animate-spin" />
                  </div>
@@ -1236,7 +1260,13 @@ function App() {
              <div className="lg:col-span-7 xl:col-span-8">
                <h2 className="text-xl font-extrabold text-slate-800 mb-6 flex items-center gap-3 ml-1"><div className="bg-blue-100 p-2 rounded-xl text-blue-600"><Icon name="book-heart" className="w-5 h-5" /></div>大家的許願待集氣清單</h2>
                <div className="space-y-5">
-                 {regularWishlists.length === 0 ? (
+                 {wishlistsError ? (
+                   <div className="flex flex-col items-center justify-center p-8 bg-rose-50 rounded-3xl border border-rose-200 shadow-sm text-center">
+                     <Icon name="alert-triangle" className="w-16 h-16 mb-4 text-rose-400" />
+                     <p className="font-bold text-xl text-rose-700 mb-2">許願單資料讀取失敗</p>
+                     <p className="text-sm text-rose-600 whitespace-pre-wrap">{wishlistsError}</p>
+                   </div>
+                 ) : regularWishlists.length === 0 ? (
                    <div className="flex flex-col items-center justify-center py-24 text-slate-400 bg-white rounded-3xl border border-dashed border-slate-200 shadow-sm" role="status">
                      <Icon name="inbox" className="w-16 h-16 mb-4 text-slate-300" />
                      <p className="font-bold text-lg text-slate-500">
@@ -1278,7 +1308,8 @@ function App() {
                   </div>
                 </div>
               )}
-              {achievedBooks.length === 0 && achievedWishlists.length === 0 && (
+              {/* 若有錯誤，這裡也會隱藏空列表提示，避免混淆 */}
+              {achievedBooks.length === 0 && achievedWishlists.length === 0 && !booksError && !wishlistsError && (
                 <div className="flex flex-col items-center justify-center py-24 text-slate-400 bg-white rounded-3xl border border-dashed border-slate-200 shadow-sm" role="status">
                    <Icon name="search-x" className="w-16 h-16 mb-4 text-slate-300 opacity-70" />
                    <p className="font-bold text-lg text-slate-500">
