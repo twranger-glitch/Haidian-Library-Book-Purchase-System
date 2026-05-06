@@ -252,7 +252,7 @@ const BookCard = React.memo(({ book, user, isAdmin, handleVote, setFastPassModal
                    <Icon name="award" className="w-4 h-4" /> 達標保送
                  </div>
               ) : (
-               <button onClick={() => setFastPassModalBook({...book, collectionName: 'books'})} title="投入快通券，參與首讀爭奪戰！" className="text-xs sm:text-sm font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-xl hover:bg-amber-100 hover:shadow-md transition-all flex items-center gap-1.5 shadow-sm focus:ring-2 focus:ring-amber-500 outline-none">
+               <button onClick={() => setFastPassModalBook({...book, collectionName: 'books'})} title="投入快通券，參與首讀爭奪戰！" className="text-xs sm:text-sm font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-xl hover:bg-amber-100 hover:shadow-md transition-all flex items-center gap-1.5 shadow-sm focus:ring-2 focus:ring-amber-50 outline-none">
                  <Icon name="ticket" className="w-4 h-4" /> 搶首讀特權
                </button>
               )
@@ -958,7 +958,7 @@ function App() {
         <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
           <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
              <div className="bg-gradient-to-br from-indigo-900 to-slate-800 p-10 text-center relative overflow-hidden">
-               <div className="absolute inset-0 opacity-10 bg-[url('[https://www.transparenttextures.com/patterns/stardust.png](https://www.transparenttextures.com/patterns/stardust.png)')]"></div>
+               <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
                <button onClick={() => setShowAbout(false)} className="absolute top-4 right-4 z-20 text-white/50 hover:text-white bg-black/20 hover:bg-black/40 rounded-full p-2 transition-all backdrop-blur-md outline-none focus:ring-2 focus:ring-white">
                  <Icon name="x" className="w-5 h-5" />
                </button>
@@ -1302,7 +1302,6 @@ function App() {
                   </div>
                 </div>
               )}
-              {/* 若有錯誤，這裡也會隱藏空列表提示，避免混淆 */}
               {achievedBooks.length === 0 && achievedWishlists.length === 0 && !booksError && !wishlistsError && (
                 <div className="flex flex-col items-center justify-center py-24 text-slate-400 bg-white rounded-3xl border border-dashed border-slate-200 shadow-sm" role="status">
                    <Icon name="search-x" className="w-16 h-16 mb-4 text-slate-300 opacity-70" />
