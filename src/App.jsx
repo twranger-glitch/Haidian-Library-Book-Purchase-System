@@ -184,7 +184,8 @@ const BookCard = React.memo(({ book, user, isAdmin, handleVote, setFastPassModal
           )}
           
           {book.coverUrl ? 
-             <img src={book.coverUrl} alt={`《${book.title}》封面`} className="w-full h-full object-contain p-2 mix-blend-multiply group-hover:scale-105 transition-transform duration-500" draggable="false" /> : 
+             // 🔥 PageSpeed 圖片優化：加上 fetchpriority 
+             <img src={book.coverUrl} loading="lazy" decoding="async" fetchpriority="low" alt={`《${book.title}》封面`} className="w-full h-full object-contain p-2 mix-blend-multiply group-hover:scale-105 transition-transform duration-500" draggable="false" /> : 
              <div className="flex flex-col items-center gap-3 text-slate-400"><Icon name="image-off" className="w-12 h-12" /><span className="text-xs font-bold tracking-widest uppercase">無封面</span></div>
           }
       </div>
@@ -211,7 +212,8 @@ const BookCard = React.memo(({ book, user, isAdmin, handleVote, setFastPassModal
          <div className={`rounded-xl p-3 mb-4 ${isAchieved ? 'bg-amber-50 border border-amber-200 shadow-sm' : 'bg-slate-50 border border-slate-100'}`}>
             <div className="flex justify-between items-center mb-2">
               <span className="flex items-center gap-1.5 text-sm font-black text-slate-700"><Icon name="ticket" className="w-4 h-4 text-amber-500"/> 快通進度</span>
-              <span className={`font-mono text-sm font-black ${isAchieved ? 'text-amber-600' : 'text-slate-400'}`}>{ranking.total} / 15</span>
+              {/* 🔥 PageSpeed 顏色對比度優化：改為 text-slate-500 */}
+              <span className={`font-mono text-sm font-black ${isAchieved ? 'text-amber-600' : 'text-slate-500'}`}>{ranking.total} / 15</span>
             </div>
             <div className="w-full bg-slate-200 rounded-full h-2 mb-3 overflow-hidden shadow-inner">
                <div className={`h-full transition-all duration-1000 ${isAchieved ? 'bg-amber-500' : 'bg-amber-400'}`} style={{ width: `${Math.min((ranking.total/15)*100, 100)}%` }}></div>
@@ -227,7 +229,8 @@ const BookCard = React.memo(({ book, user, isAdmin, handleVote, setFastPassModal
                   <span className="font-bold text-xs sm:text-sm text-slate-700 truncate flex-1 min-w-0 text-center" title={Utils.maskName(ranking.winner.name)}>
                     {Utils.maskName(ranking.winner.name)}
                   </span>
-                  <span className="text-slate-400 font-mono text-[10px] sm:text-xs shrink-0 text-right">
+                  {/* 🔥 PageSpeed 顏色對比度優化：改為 text-slate-500 */}
+                  <span className="text-slate-500 font-mono text-[10px] sm:text-xs shrink-0 text-right">
                     ({ranking.winner.count} 張)
                   </span>
                 </div>
@@ -242,7 +245,8 @@ const BookCard = React.memo(({ book, user, isAdmin, handleVote, setFastPassModal
                 </div>
               </div>
             ) : (
-              <p className="text-center text-slate-400 italic py-1 text-xs">目前尚無快通券投入</p>
+              // 🔥 PageSpeed 顏色對比度優化：改為 text-slate-500
+              <p className="text-center text-slate-500 italic py-1 text-xs">目前尚無快通券投入</p>
             )}
          </div>
          
@@ -257,13 +261,13 @@ const BookCard = React.memo(({ book, user, isAdmin, handleVote, setFastPassModal
                    <Icon name="award" className="w-4 h-4" /> 達標保送
                  </div>
               ) : (
-               <button onClick={() => setFastPassModalBook({...book, collectionName: 'books'})} title="投入快通券，參與首讀爭奪戰！" className="text-xs sm:text-sm font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-xl hover:bg-amber-100 hover:shadow-md transition-all flex items-center gap-1.5 shadow-sm focus:ring-2 focus:ring-amber-500 outline-none">
+               <button aria-label="搶首讀特權" onClick={() => setFastPassModalBook({...book, collectionName: 'books'})} title="投入快通券，參與首讀爭奪戰！" className="text-xs sm:text-sm font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-xl hover:bg-amber-100 hover:shadow-md transition-all flex items-center gap-1.5 shadow-sm focus:ring-2 focus:ring-amber-500 outline-none">
                  <Icon name="ticket" className="w-4 h-4" /> 搶首讀特權
                </button>
               )
              }
            </div>
-           <button onClick={() => handleVote(book, 'books')} title={hasVoted ? "收回愛心" : "點擊按愛心增加書籍熱度！"} className={`flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-black transition-all outline-none h-[34px] ${hasVoted ? 'bg-rose-500 text-white shadow-md focus:ring-2 focus:ring-rose-600' : 'bg-rose-50 text-rose-500 border border-rose-100 focus:ring-2 focus:ring-rose-300 hover:bg-rose-100 hover:shadow-sm'}`}>
+           <button aria-label="投票按鈕" onClick={() => handleVote(book, 'books')} title={hasVoted ? "收回愛心" : "點擊按愛心增加書籍熱度！"} className={`flex-shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-black transition-all outline-none h-[34px] ${hasVoted ? 'bg-rose-500 text-white shadow-md focus:ring-2 focus:ring-rose-600' : 'bg-rose-50 text-rose-500 border border-rose-100 focus:ring-2 focus:ring-rose-300 hover:bg-rose-100 hover:shadow-sm'}`}>
              <Icon name="heart" className={`w-4 h-4 transition-transform ${hasVoted ? 'scale-110' : ''}`} fill={hasVoted ? "currentColor" : "none"} strokeWidth={hasVoted ? 0 : 2} />
              <span>{votesCount}</span>
            </button>
@@ -271,6 +275,7 @@ const BookCard = React.memo(({ book, user, isAdmin, handleVote, setFastPassModal
          
          <div className="flex flex-col gap-1.5 mt-3 pt-3 border-t border-slate-50">
            <button 
+             aria-label="投入快通券"
              onClick={() => setFastPassModalBook({...book, collectionName: 'books'})}
              className={`text-sm font-black px-3 py-2.5 rounded-lg shadow-sm flex items-center justify-center gap-1.5 transition-all outline-none ${isAchieved ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 active:scale-95 focus:ring-2 focus:ring-amber-500'}`}
              disabled={isAchieved}
@@ -280,6 +285,7 @@ const BookCard = React.memo(({ book, user, isAdmin, handleVote, setFastPassModal
            </button>
            {myVipCount > 0 && !isAchieved && (
              <button 
+                aria-label="撤回快通券"
                 onClick={() => handleWithdrawPass(book, 'books')}
                 className="text-xs font-bold text-rose-500 hover:text-rose-700 flex items-center justify-center gap-1 outline-none focus:ring-2 focus:ring-rose-500 rounded py-1 mt-1"
                 title="撤回您投入的快通券"
@@ -291,8 +297,8 @@ const BookCard = React.memo(({ book, user, isAdmin, handleVote, setFastPassModal
       </div>
       {isAdmin && (
         <div className="flex flex-col bg-slate-800 rounded-b-xl opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onDoubleClick={() => handleAdminRemoveVip(book, 'books')} className="text-white text-[9px] py-1.5 font-bold outline-none focus:opacity-100 tracking-wider">管理員雙擊強制清空所有券</button>
-          <button onDoubleClick={() => handleAdminDelete(book, 'books')} className="text-rose-300 hover:text-white bg-rose-900/50 hover:bg-rose-700 text-[9px] py-1.5 font-bold outline-none focus:opacity-100 tracking-wider transition-colors rounded-b-xl">管理員雙擊徹底刪除</button>
+          <button aria-label="管理員清空快通券" onDoubleClick={() => handleAdminRemoveVip(book, 'books')} className="text-white text-[9px] py-1.5 font-bold outline-none focus:opacity-100 tracking-wider">管理員雙擊強制清空所有券</button>
+          <button aria-label="管理員刪除書籍" onDoubleClick={() => handleAdminDelete(book, 'books')} className="text-rose-300 hover:text-white bg-rose-900/50 hover:bg-rose-700 text-[9px] py-1.5 font-bold outline-none focus:opacity-100 tracking-wider transition-colors rounded-b-xl">管理員雙擊徹底刪除</button>
         </div>
       )}
     </article>
@@ -354,7 +360,7 @@ const WishlistCard = React.memo(({ wish, user, isAdmin, handleVote, setFastPassM
                 <span className="font-bold text-xs sm:text-sm text-slate-700 truncate flex-1 min-w-0 text-center" title={Utils.maskName(ranking.winner.name)}>
                   {Utils.maskName(ranking.winner.name)}
                 </span>
-                <span className="text-slate-400 font-mono text-[10px] sm:text-xs shrink-0 text-right">
+                <span className="text-slate-500 font-mono text-[10px] sm:text-xs shrink-0 text-right">
                   ({ranking.winner.count} 張)
                 </span>
               </div>
@@ -369,7 +375,7 @@ const WishlistCard = React.memo(({ wish, user, isAdmin, handleVote, setFastPassM
               </div>
             </div>
           ) : (
-            <p className="text-center text-slate-400 italic py-1 text-xs">這本好書需要快通券支援！</p>
+            <p className="text-center text-slate-500 italic py-1 text-xs">這本好書需要快通券支援！</p>
           )}
        </div>
 
@@ -380,19 +386,20 @@ const WishlistCard = React.memo(({ wish, user, isAdmin, handleVote, setFastPassM
                <Icon name="award" className="w-4 h-4 text-rose-500" /> 達標保送中
              </div>
            ) : (
-             <button onClick={() => setFastPassModalBook({...wish, collectionName: 'wishlists'})} title="搶下首讀特權！" className="text-xs sm:text-sm font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl hover:bg-amber-100 hover:shadow-md transition-all flex items-center gap-1.5 shadow-sm focus:ring-2 focus:ring-amber-50 outline-none">
+             <button aria-label="搶首讀特權" onClick={() => setFastPassModalBook({...wish, collectionName: 'wishlists'})} title="搶下首讀特權！" className="text-xs sm:text-sm font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl hover:bg-amber-100 hover:shadow-md transition-all flex items-center gap-1.5 shadow-sm focus:ring-2 focus:ring-amber-50 outline-none">
                <Icon name="ticket" className="w-4 h-4" /> 搶首讀特權
              </button>
            )}
          </div>
          
-         <button onClick={() => handleVote(wish, 'wishlists')} title={hasVoted ? "收回愛心" : "點擊按愛心增加書籍熱度！"} className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-black outline-none transition-all h-[36px] ${hasVoted ? 'bg-rose-500 text-white shadow-md focus:ring-2 focus:ring-rose-600' : 'bg-slate-50 text-rose-500 focus:ring-2 focus:ring-rose-300 hover:bg-rose-100 border border-rose-100 hover:shadow-sm'}`}>
+         <button aria-label="投票按鈕" onClick={() => handleVote(wish, 'wishlists')} title={hasVoted ? "收回愛心" : "點擊按愛心增加書籍熱度！"} className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-black outline-none transition-all h-[36px] ${hasVoted ? 'bg-rose-500 text-white shadow-md focus:ring-2 focus:ring-rose-600' : 'bg-slate-50 text-rose-500 focus:ring-2 focus:ring-rose-300 hover:bg-rose-100 border border-rose-100 hover:shadow-sm'}`}>
            <Icon name="heart" className={`w-3.5 h-3.5 transition-transform ${hasVoted ? 'scale-110' : ''}`} fill={hasVoted ? "currentColor" : "none"} strokeWidth={2}/> <span>{votesCount}</span>
          </button>
        </div>
        
        <div className="flex flex-col gap-1.5 mt-3 pt-3 border-t border-slate-50">
           <button 
+            aria-label="投入快通券"
             onClick={() => setFastPassModalBook({...wish, collectionName: 'wishlists'})} 
             disabled={isAchieved} 
             title={isAchieved ? "此書已達標鎖定" : "投入快通券，參與首讀爭奪戰！"}
@@ -402,6 +409,7 @@ const WishlistCard = React.memo(({ wish, user, isAdmin, handleVote, setFastPassM
           </button>
           {myVipCount > 0 && !isAchieved && (
             <button 
+              aria-label="撤回快通券"
               onClick={() => handleWithdrawPass(wish, 'wishlists')} 
               className="text-xs font-bold text-rose-500 hover:text-rose-700 flex items-center justify-center gap-1 outline-none focus:ring-2 focus:ring-rose-500 rounded py-1 mt-1"
               title="撤回您投入的快通券"
@@ -413,8 +421,8 @@ const WishlistCard = React.memo(({ wish, user, isAdmin, handleVote, setFastPassM
 
        {isAdmin && (
         <div className="flex flex-col bg-slate-800 rounded-b-xl opacity-0 hover:opacity-100 transition-opacity mt-3">
-          <button onDoubleClick={() => handleAdminRemoveVip(wish, 'wishlists')} className="text-white text-[11px] py-1.5 font-bold outline-none focus:opacity-100 tracking-wider">管理員雙擊強制清空所有券</button>
-          <button onDoubleClick={() => handleAdminDelete(wish, 'wishlists')} className="text-rose-300 hover:text-white bg-rose-900/50 hover:bg-rose-700 text-[11px] py-1.5 font-bold outline-none focus:opacity-100 tracking-wider transition-colors rounded-b-xl">管理員雙擊徹底刪除</button>
+          <button aria-label="管理員清空快通券" onDoubleClick={() => handleAdminRemoveVip(wish, 'wishlists')} className="text-white text-[11px] py-1.5 font-bold outline-none focus:opacity-100 tracking-wider">管理員雙擊強制清空所有券</button>
+          <button aria-label="管理員刪除書籍" onDoubleClick={() => handleAdminDelete(wish, 'wishlists')} className="text-rose-300 hover:text-white bg-rose-900/50 hover:bg-rose-700 text-[11px] py-1.5 font-bold outline-none focus:opacity-100 tracking-wider transition-colors rounded-b-xl">管理員雙擊徹底刪除</button>
         </div>
       )}
     </article>
@@ -527,13 +535,17 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  // 動靜分離同步核心
+  // 動靜分離同步核心 (🔥 加入 Timeout 保護，防 PageSpeed Bot 假死)
   useEffect(() => {
     const fetchCacheAndSubscribe = async () => {
       try {
         const cacheRef = doc(db, 'artifacts', appId, 'public', 'data', 'system', 'cache_books');
-        const cacheSnap = await getDoc(cacheRef);
-        if (cacheSnap.exists()) {
+        const cachePromise = getDoc(cacheRef);
+        // 設定 3 秒連線超時保護機制 (應對美國機房或慢速網路)
+        const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(null), 3000));
+        const cacheSnap = await Promise.race([cachePromise, timeoutPromise]);
+        
+        if (cacheSnap && cacheSnap.exists()) {
           setBooks(cacheSnap.data().list || []);
         }
       } catch (e) { console.error("Cache load error:", e); }
@@ -738,7 +750,6 @@ function App() {
     } catch(e) { showMessage("刪除失敗：" + e.message, "系統錯誤"); }
   };
 
-  // 許願池邏輯 
   const handleIsbnChange = (e) => {
     const isbn = e.target.value.replace(/[^0-9Xx]/g, ''); setWishFormData({ ...wishFormData, isbn });
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
@@ -864,7 +875,6 @@ function App() {
     }
   };
 
-  // 篩選與搜尋邏輯 
   const filteredBooks = useMemo(() => {
     return books.filter(book => {
       if (filterType !== 'all') {
@@ -958,7 +968,7 @@ function App() {
           <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[90dvh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 relative">
             
             {/* 懸浮關閉按鈕 (確保手機上絕對看得到) */}
-            <button onClick={() => setShowAbout(false)} className="absolute top-3 right-3 sm:top-4 sm:right-4 z-50 bg-black/30 hover:bg-black/50 text-white backdrop-blur-md rounded-full p-2 transition-all outline-none focus:ring-2 focus:ring-white/50">
+            <button aria-label="關閉海佃地圖" onClick={() => setShowAbout(false)} className="absolute top-3 right-3 sm:top-4 sm:right-4 z-50 bg-black/30 hover:bg-black/50 text-white backdrop-blur-md rounded-full p-2 transition-all outline-none focus:ring-2 focus:ring-white/50">
               <Icon name="x" className="w-5 h-5" />
             </button>
             
@@ -988,7 +998,7 @@ function App() {
                    <p className="text-xl sm:text-2xl font-black text-slate-800 leading-snug">
                      海佃<span className="text-indigo-600 px-1">地</span>下<span className="text-indigo-600 px-1">圖</span>書室
                    </p>
-                   <p className="text-[13px] sm:text-sm font-bold text-slate-400 italic mt-3">" Hidden below, growing beyond. "</p>
+                   <p className="text-[13px] sm:text-sm font-bold text-slate-500 italic mt-3">" Hidden below, growing beyond. "</p>
                  </div>
   
                  {/* 內文 (使用 text-balance 解決孤字換行問題) */}
@@ -998,7 +1008,7 @@ function App() {
                    
                    <div className="flex items-center justify-center gap-4 py-2 opacity-50">
                      <div className="h-px bg-slate-300 w-12"></div>
-                     <Icon name="book-heart" className="w-5 h-5 text-slate-400" />
+                     <Icon name="book-heart" className="w-5 h-5 text-slate-500" />
                      <div className="h-px bg-slate-300 w-12"></div>
                    </div>
                    
@@ -1010,7 +1020,7 @@ function App() {
             
             {/* 底部固定按鈕區 (確保不會跟著滾動) */}
             <div className="p-4 sm:p-6 bg-slate-50 border-t border-slate-100 shrink-0">
-              <button onClick={() => setShowAbout(false)} className="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-all outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 flex justify-center items-center gap-2 shadow-lg shadow-slate-900/20 active:scale-[0.98]">
+              <button aria-label="開始探索" onClick={() => setShowAbout(false)} className="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-all outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 flex justify-center items-center gap-2 shadow-lg shadow-slate-900/20 active:scale-[0.98]">
                 <Icon name="check-circle-2" className="w-5 h-5"/> 開始探索
               </button>
             </div>
@@ -1025,7 +1035,7 @@ function App() {
              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 mb-4"><Icon name="bell" className="w-6 h-6" /></div>
              <h3 className="text-lg font-black mb-2">{modalContent.title}</h3>
              <p className="text-slate-600 text-sm mb-6 whitespace-pre-wrap">{modalContent.message}</p>
-             <button onClick={() => setModalContent(null)} className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2">我知道了</button>
+             <button aria-label="關閉提示" onClick={() => setModalContent(null)} className="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2">我知道了</button>
            </div>
          </div>
       )}
@@ -1039,15 +1049,15 @@ function App() {
                  <h3 className="text-2xl font-black mb-1 flex items-center gap-3"><div className="bg-amber-100 text-amber-600 p-2.5 rounded-2xl"><Icon name="ticket" className="w-6 h-6" /></div> 投入快通券 🎟️</h3>
                  <p className="text-sm text-slate-500 font-bold leading-relaxed mt-2">為 <span className="text-indigo-600">《{fastPassModalBook.title}》</span> 增加熱度！<br/>集滿 15 張即可保送採購，投入最多券者獨享首讀特權！目前已有 <span className="text-amber-600 text-lg">{(fastPassModalBook.vipRequests || []).length}</span> 張。</p>
                </div>
-               <button onClick={() => { setFastPassModalBook(null); setFastPassInput(''); }} className="text-slate-400 hover:text-slate-700 p-2 rounded-full hover:bg-slate-100 transition-colors outline-none focus:ring-2 focus:ring-slate-200"><Icon name="x" className="w-5 h-5" /></button>
+               <button aria-label="關閉快通券視窗" onClick={() => { setFastPassModalBook(null); setFastPassInput(''); }} className="text-slate-400 hover:text-slate-700 p-2 rounded-full hover:bg-slate-100 transition-colors outline-none focus:ring-2 focus:ring-slate-200"><Icon name="x" className="w-5 h-5" /></button>
              </div>
              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-6 shadow-inner">
                <label htmlFor="fastpass-input" className="block text-sm font-bold text-amber-800 mb-3 flex items-center gap-2"><Icon name="key-round" className="w-4 h-4" /> 請輸入您的快通券代碼：</label>
                <input id="fastpass-input" value={fastPassInput} onChange={e=>setFastPassInput(e.target.value)} maxLength={5} className="w-full p-4 border-2 border-amber-300 rounded-xl text-center text-3xl font-black uppercase tracking-[0.3em] bg-white shadow-sm text-amber-900 outline-none focus:ring-4 focus:ring-amber-100 focus:border-amber-500 transition-all" placeholder="XXXXX" />
              </div>
              <div className="flex gap-4">
-               <button onClick={()=>{setFastPassModalBook(null); setFastPassInput('');}} className="flex-1 py-3.5 font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all rounded-xl outline-none focus:ring-2 focus:ring-slate-200">取消</button>
-               <button onClick={handleFastPassBoost} className="flex-1 py-3.5 font-black text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-xl shadow-lg shadow-amber-200 transition-all active:scale-95 outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1 flex justify-center items-center gap-2"><Icon name="sparkles" className="w-5 h-5"/> 確認投入</button>
+               <button aria-label="取消" onClick={()=>{setFastPassModalBook(null); setFastPassInput('');}} className="flex-1 py-3.5 font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all rounded-xl outline-none focus:ring-2 focus:ring-slate-200">取消</button>
+               <button aria-label="確認投入快通券" onClick={handleFastPassBoost} className="flex-1 py-3.5 font-black text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-xl shadow-lg shadow-amber-200 transition-all active:scale-95 outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1 flex justify-center items-center gap-2"><Icon name="sparkles" className="w-5 h-5"/> 確認投入</button>
              </div>
            </div>
         </div>
@@ -1069,7 +1079,7 @@ function App() {
              </div>
              
              <div className="flex items-center gap-1 sm:gap-4 shrink-0">
-               <button onClick={() => setShowAbout(true)} className="flex items-center gap-1 text-[11px] sm:text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl hover:bg-indigo-50 border border-transparent hover:border-indigo-100 outline-none focus:ring-2 focus:ring-indigo-200 shrink-0">
+               <button aria-label="海佃地圖" onClick={() => setShowAbout(true)} className="flex items-center gap-1 text-[11px] sm:text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl hover:bg-indigo-50 border border-transparent hover:border-indigo-100 outline-none focus:ring-2 focus:ring-indigo-200 shrink-0">
                  <Icon name="map" className="w-[18px] h-[18px] sm:w-5 sm:h-5" /> <span className="hidden sm:inline">海佃地圖</span>
                </button>
                
@@ -1088,8 +1098,8 @@ function App() {
                  </div>
                ) : (
                  <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-                   <span className="text-sm font-bold text-slate-400 hidden sm:inline-block tracking-wide shrink-0">訪客瀏覽中</span>
-                   <button onClick={handleGoogleLogin} className="flex items-center gap-1 sm:gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[13px] sm:text-sm font-bold shadow-md shadow-indigo-200 transition-all hover:shadow-lg active:scale-95 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 outline-none shrink-0"><Icon name="log-in" className="w-4 h-4 shrink-0" /> <span className="hidden sm:inline">Google </span>登入</button>
+                   <span className="text-sm font-bold text-slate-500 hidden sm:inline-block tracking-wide shrink-0">訪客瀏覽中</span>
+                   <button aria-label="Google登入" onClick={handleGoogleLogin} className="flex items-center gap-1 sm:gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[13px] sm:text-sm font-bold shadow-md shadow-indigo-200 transition-all hover:shadow-lg active:scale-95 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 outline-none shrink-0"><Icon name="log-in" className="w-4 h-4 shrink-0" /> <span className="hidden sm:inline">Google </span>登入</button>
                  </div>
                )}
              </div>
@@ -1153,7 +1163,7 @@ function App() {
                className="w-full pl-11 pr-10 py-3 border-2 border-slate-200 rounded-full text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-100 focus:border-indigo-400 bg-white shadow-sm outline-none transition-all placeholder-slate-400"
              />
              {searchQuery && (
-               <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full p-1.5 transition-colors">
+               <button aria-label="清除搜尋" onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full p-1.5 transition-colors">
                  <Icon name="x" className="w-3 h-3" />
                </button>
              )}
