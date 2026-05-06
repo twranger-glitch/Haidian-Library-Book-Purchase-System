@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>海佃國小｜新書許願池 - 首讀特權爭奪戰</title>
+  <meta name="description" content="歡迎來到圖書室許願網！快通券滿 15 張即優先採購，投入最多券者享首讀特權！" />
+
+  <meta property="og:title" content="海佃國小｜新書許願池 - 首讀特權爭奪戰" />
+  <meta property="og:description" content="快通券滿 15 張即優先採購，投入最多券者享首讀特權！" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1200&auto=format&fit=crop" />
+  
+  <!-- Material Symbols Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block" rel="stylesheet" />
+</head>
+<body class="bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900 text-slate-800 antialiased">
+  
+  <!-- WebView 阻擋器 -->
+  <div id="webview-overlay" style="display: none; position: fixed; inset: 0; z-index: 99999; background: #f8fafc; align-items: center; justify-content: center; padding: 20px; text-align: center; flex-direction: column; font-family: system-ui, -apple-system, sans-serif;">
+    <div style="background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); max-width: 400px; width: 100%; border: 1px solid #e2e8f0;">
+      <div style="background: #e0e7ff; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
+        <span class="material-symbols-rounded" style="font-size: 40px; color: #4f46e5;">open_in_browser</span>
+      </div>
+      <h2 style="font-size: 22px; font-weight: 800; color: #1e293b; margin: 0 0 12px 0;">請使用一般瀏覽器開啟</h2>
+      <p style="font-size: 15px; color: #64748b; margin: 0 0 24px 0; line-height: 1.6; font-weight: 500;">
+        您目前使用的是 App 內建瀏覽器。為了給您最順暢的體驗並支援 Google 登入，請點擊下方按鈕前往 Safari / Chrome 開啟。
+      </p>
+      <button onclick="forceOpenExternal()" style="background: linear-gradient(135deg, #4f46e5, #3b82f6); color: white; border: none; padding: 14px 24px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); transition: transform 0.2s;">
+        🚀 前往一般瀏覽器
+      </button>
+    </div>
+  </div>
+
+  <script>
+    function forceOpenExternal() {
+      var url = window.location.href;
+      if (url.indexOf("openExternalBrowser=1") === -1) {
+        var sep = url.indexOf("?") === -1 ? "?" : "&";
+        window.location.href = url + sep + "openExternalBrowser=1";
+      }
+    }
+    (function() {
+      var ua = navigator.userAgent || navigator.vendor || window.opera;
+      var isLINE = (ua.indexOf("Line") > -1) || (ua.indexOf("LINE") > -1);
+      var isFB = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1);
+      var isIG = (ua.indexOf("Instagram") > -1);
+      if (isLINE || isFB || isIG) {
+        if (isLINE && location.search.indexOf("openExternalBrowser=1") === -1) {
+          forceOpenExternal();
+        }
+        document.addEventListener("DOMContentLoaded", function() {
+          document.getElementById("webview-overlay").style.display = "flex";
+          var rootEl = document.getElementById("root");
+          if(rootEl) rootEl.style.display = "none";
+        });
+      }
+    })();
+  </script>
+
+  <!-- 靜態載入骨架 (Vite 載入完成前顯示) -->
+  <div id="root">
+    <div style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; padding: 20px; text-align: center;">
+      <div style="width: 50px; height: 50px; border: 4px solid #e2e8f0; border-top-color: #4f46e5; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 24px;"></div>
+      <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+      <h2 style="color: #1e293b; font-size: 22px; font-weight: 800; margin: 0 0 10px 0;">系統啟動中...</h2>
+      <p style="color: #64748b; font-size: 15px; margin: 0; font-weight: 500;">首次解析資料較久，請耐心等候幾秒鐘 ☕</p>
+    </div>
+  </div>
+  
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>
