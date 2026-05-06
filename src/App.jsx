@@ -449,6 +449,9 @@ function App() {
   const [books, setBooks] = useState(() => Utils.getCachedArray('haidian_books') || []);
   const [wishlists, setWishlists] = useState(() => Utils.getCachedArray('haidian_wishlists') || []);
   
+  const [booksError, setBooksError] = useState(null);
+  const [wishlistsError, setWishlistsError] = useState(null);
+
   const [inventoryDict, setInventoryDict] = useState({}); 
   const [inventoryLastUpdated, setInventoryLastUpdated] = useState(null);
   const [dailyVotesCount, setDailyVotesCount] = useState(0); 
@@ -550,12 +553,18 @@ function App() {
           finalResult.sort((a, b) => (b.votes?.length || 0) - (a.votes?.length || 0));
           return finalResult;
         });
+      }, err => {
+        setBooksError(`連線異常 (${err.code || 'unknown'})`);
+        setBooksReady(true);
       });
 
       const unsubscribeWish = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'wishlists'), (snapshot) => {
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         data.sort((a,b) => Utils.getTimestamp(b.createdAt) - Utils.getTimestamp(a.createdAt));
         setWishlists(data);
+        setWishlistsReady(true);
+      }, err => {
+        setWishlistsError(`連線異常 (${err.code || 'unknown'})`);
         setWishlistsReady(true);
       });
 
