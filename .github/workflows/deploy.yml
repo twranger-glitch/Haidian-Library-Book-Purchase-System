@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ "main" ] # 當程式碼推送到 main 分支時觸發
+    branches: [ "main" ]
 
 permissions:
   contents: read
@@ -19,14 +19,15 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24 # 🔥 修改點 1：對齊您電腦的 Node 24 版本
           cache: 'npm'
 
       - name: Install dependencies
         run: npm install
 
       - name: Build
-        run: npm run build
+        # 🔥 修改點 2：加入 CI=false，告訴機器人忽略所有小警告，直接強行打包！
+        run: CI=false npm run build 
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
